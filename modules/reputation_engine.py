@@ -3,6 +3,7 @@ import logging
 from config import Config
 from urllib.parse import urlparse
 import time
+from .virustotal_client import VirusTotalClient
 
 logger = logging.getLogger(__name__)
 
@@ -10,8 +11,7 @@ class ReputationEngine:
     """URL reputation scoring and threat assessment engine."""
     
     def __init__(self):
-        self.virustotal_api_key = Config.VIRUSTOTAL_API_KEY
-        self.virustotal_url = Config.VIRUSTOTAL_API_URL
+        self.virustotal_client = VirusTotalClient()
         
     def calculate_score(self, scan_result):
         """Calculate comprehensive reputation score (0-10, higher = more suspicious)."""
@@ -39,8 +39,10 @@ class ReputationEngine:
         score_breakdown['security_score'] = self._calculate_security_score(scan_result.get('security_indicators', {}))
         
         # VirusTotal integration (if API key available)
-        if self.virustotal_api_key:
-            score_breakdown['virustotal_score'] = self._get_virustotal_score(scan_result['url'])
+        if self.virustotal_client.is_available():
+            vt_result = self.virustotal_client.scan_url(scan_result['url'])
+            score_breakdown['virustotal_score'] = vt_result.get('risk_score', 0)
+            score_breakdown['virustotal_data'] = vt_result
         
         # Calculate total score
         total = (score_breakdown['base_score'] + 
@@ -132,53 +134,7 @@ class ReputationEngine:
         
         return min(score, 2)  # Max 2 points for security score
     
-    def _get_virustotal_score(self, url):
-        """Get VirusTotal reputation score."""
-        try:
-            # Submit URL for scanning
-            params = {
-                'apikey': self.virustotal_api_key,
-                'url': url
-            }
-            
-            response = requests.post(self.virustotal_url + '/scan', params=params, timeout=10)
-            
-            if response.status_code == 200:
-                scan_data = response.json()
-                
-                # Wait a moment then get report
-                time.sleep(2)
-                
-                report_params = {
-                    'apikey': self.virustotal_api_key,
-                    'resource': url
-                }
-                
-                report_response = requests.get(self.virustotal_url + '/report', params=report_params, timeout=10)
-                
-                if report_response.status_code == 200:
-                    report_data = report_response.json()
-                    
-                    if report_data.get('response_code') == 1:
-                        positives = report_data.get('positives', 0)
-                        total = report_data.get('total', 1)
-                        
-                        # Convert to 0-4 scale
-                        if positives == 0:
-                            return 0
-                        elif positives <= 2:
-                            return 1
-                        elif positives <= 5:
-                            return 2
-                        elif positives <= 10:
-                            return 3
-                        else:
-                            return 4
-                            
-        except Exception as e:
-            logger.warning(f"VirusTotal API error: {str(e)}")
-        
-        return 0  # Default if API unavailable
+
     
     def _determine_risk_level(self, total_score):
         """Determine risk level based on total score."""

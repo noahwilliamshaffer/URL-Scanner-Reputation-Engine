@@ -49,4 +49,15 @@ def scan_url():
 @api_bp.route('/health', methods=['GET'])
 def health_check():
     """Health check endpoint."""
-    return jsonify({'status': 'healthy', 'service': 'PhishSentry'}), 200 
+    return jsonify({'status': 'healthy', 'service': 'PhishSentry'}), 200
+
+@api_bp.route('/virustotal/info', methods=['GET'])
+def virustotal_info():
+    """Get VirusTotal API information."""
+    try:
+        from modules.virustotal_client import VirusTotalClient
+        client = VirusTotalClient()
+        info = client.get_api_info()
+        return jsonify(info), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500 

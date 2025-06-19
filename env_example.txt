@@ -1,0 +1,11 @@
+# VirusTotal API Configuration
+VIRUSTOTAL_API_KEY=your_virustotal_api_key_here
+
+# Flask Configuration
+FLASK_ENV=development
+FLASK_DEBUG=True
+SECRET_KEY=your_secret_key_here
+
+# Application Settings
+MAX_SCAN_REQUESTS=100
+SCAN_TIMEOUT=30 

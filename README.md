@@ -32,8 +32,8 @@ PhishSentry is an advanced URL scanner and reputation engine that combines cyber
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/noahwilliamshaffer/PhishSentry.git
-   cd PhishSentry
+   git clone https://github.com/noahwilliamshaffer/URL-Scanner-Reputation-Engine.git
+   cd URL-Scanner-Reputation-Engine
    ```
 
 2. **Create a virtual environment**:
@@ -55,7 +55,7 @@ PhishSentry is an advanced URL scanner and reputation engine that combines cyber
 4. **Configure environment variables**:
    ```bash
    # Copy the example environment file
-   cp .env.example .env
+   cp env_example.txt .env
    
    # Edit .env and add your VirusTotal API key (optional)
    VIRUSTOTAL_API_KEY=your_api_key_here
@@ -210,7 +210,7 @@ PhishSentry is for educational and security research purposes. Always verify res
 
 If you encounter any issues or have questions:
 
-1. Check the [Issues](https://github.com/noahwilliamshaffer/PhishSentry/issues) page
+1. Check the [Issues](https://github.com/noahwilliamshaffer/URL-Scanner-Reputation-Engine/issues) page
 2. Create a new issue with detailed information
 3. Include logs and reproduction steps
 
