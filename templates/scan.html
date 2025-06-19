@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}PhishSentry - Scan URL{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-search me-2"></i>URL Security Scanner</h4>
+            </div>
+            <div class="card-body">
+                {% if error %}
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+                </div>
+                {% endif %}
+
+                <form method="POST" action="/scan">
+                    <div class="mb-3">
+                        <label for="url" class="form-label">URL to Scan</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-link"></i></span>
+                            <input type="url" class="form-control" id="url" name="url" 
+                                   placeholder="https://example.com" required
+                                   value="{{ request.form.url if request.form.url }}">
+                        </div>
+                        <div class="form-text">Enter the complete URL including http:// or https://</div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-shield-alt me-2"></i>Scan URL
+                        </button>
+                    </div>
+                </form>
+
+                <div class="mt-4">
+                    <h6><i class="fas fa-info-circle me-2"></i>What we analyze:</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success me-2"></i>URL structure and patterns</li>
+                                <li><i class="fas fa-check text-success me-2"></i>SSL/TLS security</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Domain reputation</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Content analysis</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success me-2"></i>Phishing indicators</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Malicious scripts</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Redirect chains</li>
+                                <li><i class="fas fa-check text-success me-2"></i>VirusTotal reports</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-body">
+                <h6><i class="fas fa-lightbulb text-warning me-2"></i>Example URLs to Test:</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Legitimate sites:</strong></p>
+                        <ul class="list-unstyled small">
+                            <li>• https://google.com</li>
+                            <li>• https://github.com</li>
+                            <li>• https://stackoverflow.com</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Test scenarios:</strong></p>
+                        <ul class="list-unstyled small">
+                            <li>• Sites with redirects</li>
+                            <li>• Sites without HTTPS</li>
+                            <li>• Sites with forms</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

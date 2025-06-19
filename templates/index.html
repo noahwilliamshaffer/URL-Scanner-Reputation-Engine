@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}PhishSentry - Dashboard{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="text-center mb-5">
+            <h1 class="display-4 text-white fw-bold mb-3">
+                <i class="fas fa-shield-alt me-3"></i>PhishSentry
+            </h1>
+            <p class="lead text-white-50">Advanced URL Scanner & Reputation Engine</p>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <i class="fas fa-search fa-3x text-primary mb-3"></i>
+                        <h5 class="card-title">URL Scanning</h5>
+                        <p class="card-text">Comprehensive analysis of URLs for malicious content, phishing attempts, and security threats.</p>
+                        <a href="/scan" class="btn btn-primary">Start Scanning</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
+                        <h5 class="card-title">Reputation Scoring</h5>
+                        <p class="card-text">Advanced scoring algorithm combining multiple threat intelligence sources and behavioral analysis.</p>
+                        <span class="badge bg-success">AI-Powered</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <i class="fas fa-virus fa-3x text-warning mb-3"></i>
+                        <h5 class="card-title">VirusTotal Integration</h5>
+                        <p class="card-text">Leverage VirusTotal's extensive database for enhanced threat detection and validation.</p>
+                        <span class="badge bg-warning">External API</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-5">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-info-circle me-2"></i>How It Works</h5>
+                <div class="row">
+                    <div class="col-md-3 text-center mb-3">
+                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <span class="fw-bold">1</span>
+                        </div>
+                        <h6 class="mt-2">Submit URL</h6>
+                        <small class="text-muted">Enter the URL you want to analyze</small>
+                    </div>
+                    <div class="col-md-3 text-center mb-3">
+                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <span class="fw-bold">2</span>
+                        </div>
+                        <h6 class="mt-2">Deep Analysis</h6>
+                        <small class="text-muted">Scan content, structure, and behavior</small>
+                    </div>
+                    <div class="col-md-3 text-center mb-3">
+                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <span class="fw-bold">3</span>
+                        </div>
+                        <h6 class="mt-2">Threat Intelligence</h6>
+                        <small class="text-muted">Cross-reference with threat databases</small>
+                    </div>
+                    <div class="col-md-3 text-center mb-3">
+                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <span class="fw-bold">4</span>
+                        </div>
+                        <h6 class="mt-2">Risk Report</h6>
+                        <small class="text-muted">Get detailed security assessment</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

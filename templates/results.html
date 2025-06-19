@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+
+{% block title %}PhishSentry - Scan Results{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Scan Results</h4>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <h5><i class="fas fa-link me-2"></i>Analyzed URL:</h5>
+                        <p class="text-break"><code>{{ url }}</code></p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <a href="/scan" class="btn btn-outline-primary">
+                            <i class="fas fa-search me-2"></i>Scan Another URL
+                        </a>
+                    </div>
+                </div>
+
+                {% set risk_level = reputation_score.risk_level %}
+                {% if risk_level == 'low' %}
+                    {% set risk_class = 'success' %}
+                    {% set risk_icon = 'fas fa-check-circle' %}
+                {% elif risk_level == 'medium' %}
+                    {% set risk_class = 'warning' %}
+                    {% set risk_icon = 'fas fa-exclamation-triangle' %}
+                {% elif risk_level == 'high' %}
+                    {% set risk_class = 'danger' %}
+                    {% set risk_icon = 'fas fa-times-circle' %}
+                {% elif risk_level == 'critical' %}
+                    {% set risk_class = 'danger' %}
+                    {% set risk_icon = 'fas fa-skull-crossbones' %}
+                {% else %}
+                    {% set risk_class = 'secondary' %}
+                    {% set risk_icon = 'fas fa-question-circle' %}
+                {% endif %}
+
+                <div class="alert alert-{{ risk_class }} mb-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h5 class="mb-1">
+                                <i class="{{ risk_icon }} me-2"></i>
+                                Risk Level: {{ risk_level.title() }}
+                            </h5>
+                            <p class="mb-0">
+                                Total Score: {{ "%.1f"|format(reputation_score.total_score) }}/10
+                                {% if reputation_score.threats %}
+                                    <br><small>Threats detected: {{ reputation_score.threats|join(', ')|replace('_', ' ')|title }}</small>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar bg-{{ risk_class }}" 
+                                     style="width: {{ (reputation_score.total_score * 10)|round }}%">
+                                    {{ "%.1f"|format(reputation_score.total_score) }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Score Breakdown -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Score Breakdown</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-2">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Base URL Analysis:</span>
+                                        <span class="badge bg-info">{{ "%.1f"|format(reputation_score.base_score) }}/4</span>
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Content Analysis:</span>
+                                        <span class="badge bg-info">{{ "%.1f"|format(reputation_score.content_score) }}/4</span>
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Security Indicators:</span>
+                                        <span class="badge bg-info">{{ "%.1f"|format(reputation_score.security_score) }}/2</span>
+                                    </div>
+                                </div>
+                                {% if reputation_score.virustotal_score > 0 %}
+                                <div class="mb-2">
+                                    <div class="d-flex justify-content-between">
+                                        <span>VirusTotal:</span>
+                                        <span class="badge bg-info">{{ "%.1f"|format(reputation_score.virustotal_score) }}/4</span>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Basic Information -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Basic Information</h6>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td><strong>Status:</strong></td>
+                                        <td>
+                                            {% if scan_result.accessible %}
+                                                <span class="badge bg-success">Accessible</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Inaccessible</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% if scan_result.status_code %}
+                                    <tr>
+                                        <td><strong>HTTP Status:</strong></td>
+                                        <td>{{ scan_result.status_code }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% if scan_result.response_time %}
+                                    <tr>
+                                        <td><strong>Response Time:</strong></td>
+                                        <td>{{ "%.2f"|format(scan_result.response_time) }}s</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% if scan_result.final_url != scan_result.url %}
+                                    <tr>
+                                        <td><strong>Final URL:</strong></td>
+                                        <td class="text-break"><small>{{ scan_result.final_url }}</small></td>
+                                    </tr>
+                                    {% endif %}
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if scan_result.accessible %}
+                <div class="row">
+                    <!-- Content Analysis -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-file-alt me-2"></i>Content Analysis</h6>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-sm">
+                                    {% if scan_result.content_analysis.title %}
+                                    <tr>
+                                        <td><strong>Title:</strong></td>
+                                        <td class="text-break">{{ scan_result.content_analysis.title[:50] }}{% if scan_result.content_analysis.title|length > 50 %}...{% endif %}</td>
+                                    </tr>
+                                    {% endif %}
+                                    <tr>
+                                        <td><strong>Forms Found:</strong></td>
+                                        <td>
+                                            {% if scan_result.content_analysis.has_forms %}
+                                                <span class="badge bg-warning">Yes</span>
+                                            {% else %}
+                                                <span class="badge bg-success">No</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% if scan_result.content_analysis.login_forms > 0 %}
+                                    <tr>
+                                        <td><strong>Login Forms:</strong></td>
+                                        <td><span class="badge bg-danger">{{ scan_result.content_analysis.login_forms }}</span></td>
+                                    </tr>
+                                    {% endif %}
+                                    <tr>
+                                        <td><strong>External Links:</strong></td>
+                                        <td>{{ scan_result.content_analysis.external_links }}</td>
+                                    </tr>
+                                    {% if scan_result.content_analysis.suspicious_scripts > 0 %}
+                                    <tr>
+                                        <td><strong>Suspicious Scripts:</strong></td>
+                                        <td><span class="badge bg-danger">{{ scan_result.content_analysis.suspicious_scripts }}</span></td>
+                                    </tr>
+                                    {% endif %}
+                                    {% if scan_result.content_analysis.iframe_count > 0 %}
+                                    <tr>
+                                        <td><strong>iFrames:</strong></td>
+                                        <td>{{ scan_result.content_analysis.iframe_count }}</td>
+                                    </tr>
+                                    {% endif %}
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Indicators -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Security Indicators</h6>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td><strong>HTTPS:</strong></td>
+                                        <td>
+                                            {% if scan_result.security_indicators.https %}
+                                                <span class="badge bg-success">Yes</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">No</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Security Headers:</strong></td>
+                                        <td>
+                                            {% if scan_result.security_indicators.has_security_headers %}
+                                                <span class="badge bg-success">Present</span>
+                                            {% else %}
+                                                <span class="badge bg-warning">Missing</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>URL Length:</strong></td>
+                                        <td>{{ scan_result.security_indicators.url_length }} chars</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Subdomains:</strong></td>
+                                        <td>{{ scan_result.security_indicators.subdomain_count }}</td>
+                                    </tr>
+                                    {% if scan_result.security_indicators.suspicious_tld %}
+                                    <tr>
+                                        <td><strong>Domain TLD:</strong></td>
+                                        <td><span class="badge bg-warning">Suspicious</span></td>
+                                    </tr>
+                                    {% endif %}
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Redirects -->
+                {% if scan_result.redirects %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fas fa-route me-2"></i>Redirect Chain ({{ scan_result.redirects|length }} redirects)</h6>
+                    </div>
+                    <div class="card-body">
+                        {% for redirect in scan_result.redirects %}
+                        <div class="mb-2">
+                            <span class="badge bg-info">{{ redirect.status }}</span>
+                            <small class="text-break">{{ redirect.from }} → {{ redirect.to }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                {% endif %}
+
+                <!-- API Response (for debugging) -->
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-code me-2"></i>Technical Details
+                            <button class="btn btn-sm btn-outline-secondary ms-2" type="button" 
+                                    data-bs-toggle="collapse" data-bs-target="#jsonResponse">
+                                Show/Hide JSON
+                            </button>
+                        </h6>
+                    </div>
+                    <div class="collapse" id="jsonResponse">
+                        <div class="card-body">
+                            <pre class="bg-light p-3 rounded"><code>{{ {'scan_result': scan_result, 'reputation_score': reputation_score}|tojson(indent=2) }}</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
