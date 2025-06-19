@@ -19,10 +19,12 @@ class ReputationEngine:
             'base_score': 0,
             'content_score': 0,
             'security_score': 0,
+            'pattern_score': 0,
             'virustotal_score': 0,
             'total_score': 0,
             'risk_level': 'unknown',
-            'threats': []
+            'threats': [],
+            'pattern_threats': []
         }
         
         if not scan_result.get('accessible'):
@@ -38,16 +40,24 @@ class ReputationEngine:
         # Security indicators scoring
         score_breakdown['security_score'] = self._calculate_security_score(scan_result.get('security_indicators', {}))
         
+        # Pattern analysis scoring (new)
+        pattern_analysis = scan_result.get('pattern_analysis', {})
+        if pattern_analysis:
+            pattern_result = self._calculate_pattern_score(pattern_analysis)
+            score_breakdown['pattern_score'] = pattern_result.get('total_pattern_score', 0)
+            score_breakdown['pattern_threats'] = pattern_result.get('high_risk_patterns', [])
+        
         # VirusTotal integration (if API key available)
         if self.virustotal_client.is_available():
             vt_result = self.virustotal_client.scan_url(scan_result['url'])
             score_breakdown['virustotal_score'] = vt_result.get('risk_score', 0)
             score_breakdown['virustotal_data'] = vt_result
         
-        # Calculate total score
+        # Calculate total score (adjusted for new pattern score)
         total = (score_breakdown['base_score'] + 
                 score_breakdown['content_score'] + 
                 score_breakdown['security_score'] + 
+                score_breakdown['pattern_score'] +
                 score_breakdown['virustotal_score'])
         
         score_breakdown['total_score'] = min(total, 10)  # Cap at 10
@@ -134,15 +144,64 @@ class ReputationEngine:
         
         return min(score, 2)  # Max 2 points for security score
     
+    def _calculate_pattern_score(self, pattern_analysis):
+        """Calculate score based on advanced pattern analysis."""
+        url_patterns = pattern_analysis.get('url_patterns', {})
+        content_patterns = pattern_analysis.get('content_patterns', {})
+        
+        score_breakdown = {
+            'url_score': 0,
+            'content_score': 0,
+            'total_pattern_score': 0,
+            'high_risk_patterns': []
+        }
+        
+        # URL pattern scoring
+        url_score = 0
+        if url_patterns.get('suspicious_chars', 0) > 2:
+            url_score += 1
+        if url_patterns.get('subdomain_abuse', 0) > 2:
+            url_score += 1
+        if url_patterns.get('url_shortener', False):
+            url_score += 1
+        if url_patterns.get('deceptive_path', False):
+            url_score += 1
+            score_breakdown['high_risk_patterns'].append('deceptive_path')
+        if url_patterns.get('ip_address', False):
+            url_score += 1
+            score_breakdown['high_risk_patterns'].append('ip_address')
+        
+        # Content pattern scoring (if available)
+        content_score = 0
+        if content_patterns:
+            if content_patterns.get('phishing_keywords', 0) > 3:
+                content_score += 1
+            if content_patterns.get('urgency_indicators', 0) > 0:
+                content_score += 1
+                score_breakdown['high_risk_patterns'].append('urgency_tactics')
+            if content_patterns.get('fake_login_forms', 0) > 0:
+                content_score += 2
+                score_breakdown['high_risk_patterns'].append('fake_login_forms')
+            if content_patterns.get('social_engineering', 0) > 0:
+                content_score += 2
+                score_breakdown['high_risk_patterns'].append('social_engineering')
+            if content_patterns.get('javascript_obfuscation', 0) > 2:
+                content_score += 1
+                score_breakdown['high_risk_patterns'].append('obfuscated_javascript')
+        
+        score_breakdown['url_score'] = min(url_score, 3)
+        score_breakdown['content_score'] = min(content_score, 3)
+        score_breakdown['total_pattern_score'] = min(url_score + content_score, 4)  # Max 4 points
+        
+        return score_breakdown
 
-    
     def _determine_risk_level(self, total_score):
         """Determine risk level based on total score."""
         if total_score <= 2:
             return 'low'
         elif total_score <= 4:
             return 'medium'
-        elif total_score <= 6:
+        elif total_score <= 7:
             return 'high'
         else:
             return 'critical'
@@ -173,4 +232,8 @@ class ReputationEngine:
         if len(scan_result.get('redirects', [])) > 3:
             threats.append('excessive_redirects')
         
-        return threats 
+        # Add pattern-based threats
+        pattern_threats = score_breakdown.get('pattern_threats', [])
+        threats.extend(pattern_threats)
+        
+        return list(set(threats))  # Remove duplicates 

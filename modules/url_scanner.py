@@ -6,6 +6,7 @@ from urllib.parse import urlparse, urljoin
 import time
 import logging
 from config import Config
+from .pattern_detector import PatternDetector
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +19,7 @@ class URLScanner:
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 PhishSentry/1.0'
         })
         self.timeout = Config.SCAN_TIMEOUT
+        self.pattern_detector = PatternDetector()
         
     def scan_url(self, url):
         """Perform comprehensive URL scan."""
@@ -31,6 +33,7 @@ class URLScanner:
             'status_code': None,
             'content_analysis': {},
             'security_indicators': {},
+            'pattern_analysis': {},
             'timestamp': time.time()
         }
         
@@ -41,6 +44,9 @@ class URLScanner:
                 return result
             
             result['is_valid'] = True
+            
+            # Analyze URL patterns before making request
+            result['pattern_analysis']['url_patterns'] = self.pattern_detector.analyze_url_patterns(url)
             
             # Perform HTTP request with redirect tracking
             start_time = time.time()
@@ -56,11 +62,29 @@ class URLScanner:
                 result['content_analysis'] = self._analyze_content(response)
                 result['security_indicators'] = self._check_security_indicators(response, url)
                 
+                # Enhanced pattern analysis with content
+                if response.content:
+                    page_text = self._extract_page_text(response.content)
+                    result['pattern_analysis']['content_patterns'] = self.pattern_detector.analyze_content_patterns(
+                        response.text, page_text
+                    )
+                
         except Exception as e:
             logger.error(f"Error scanning URL {url}: {str(e)}")
             result['error'] = str(e)
             
         return result
+    
+    def _extract_page_text(self, content):
+        """Extract readable text from HTML content."""
+        try:
+            soup = BeautifulSoup(content, 'html.parser')
+            # Remove script and style elements
+            for script in soup(["script", "style"]):
+                script.decompose()
+            return soup.get_text()
+        except Exception:
+            return ""
     
     def _make_request(self, url, result):
         """Make HTTP request and track redirects."""
