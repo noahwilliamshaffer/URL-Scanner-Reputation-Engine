@@ -5,12 +5,14 @@ PhishSentry is an advanced URL scanner and reputation engine that combines cyber
 ## Features
 
 - 🔍 **Comprehensive URL Analysis**: Deep scanning of web content, structure, and behavior
-- 🧠 **AI-Powered Scoring**: Advanced reputation scoring algorithm
+- 🧠 **AI-Powered Scoring**: Advanced reputation scoring algorithm with pattern detection
 - 🔒 **Security Assessment**: SSL/TLS analysis, security headers validation
 - 🌐 **VirusTotal Integration**: External threat intelligence from VirusTotal API
 - 📊 **Detailed Reports**: Rich visualization of scan results and threat indicators
 - 🚀 **REST API**: JSON API endpoints for programmatic access
 - 💻 **Web Interface**: Beautiful, responsive web dashboard
+- 📈 **Scan History**: Track and analyze previous scans with statistics
+- 🎯 **Pattern Detection**: Advanced pattern recognition for phishing and malware
 
 ## Technology Stack
 
@@ -19,6 +21,7 @@ PhishSentry is an advanced URL scanner and reputation engine that combines cyber
 - **Frontend**: Bootstrap 5, Font Awesome
 - **External APIs**: VirusTotal API
 - **Security**: HTTPS enforcement, security headers validation
+- **Pattern Recognition**: Custom threat detection algorithms
 
 ## Installation
 
@@ -68,14 +71,23 @@ PhishSentry is an advanced URL scanner and reputation engine that combines cyber
 
 The application will be available at `http://localhost:5000`
 
+## Quick Test
+
+Run the test script to verify installation:
+```bash
+python test_scanner.py https://google.com
+```
+
 ## Usage
 
 ### Web Interface
 
 1. Navigate to `http://localhost:5000`
-2. Click "Start Scanning" or go to `/scan`
-3. Enter a URL to analyze
-4. View the detailed security report
+2. View dashboard with recent scans and statistics
+3. Click "Start Scanning" or go to `/scan`
+4. Enter a URL to analyze
+5. View detailed security report
+6. Check scan history at `/history`
 
 ### REST API
 
@@ -110,27 +122,41 @@ The application will be available at `http://localhost:5000`
       "has_security_headers": true,
       "url_length": 19,
       "subdomain_count": 0
+    },
+    "pattern_analysis": {
+      "url_patterns": {
+        "suspicious_chars": 0,
+        "url_shortener": false,
+        "deceptive_path": false,
+        "ip_address": false
+      },
+      "content_patterns": {
+        "phishing_keywords": 0,
+        "urgency_indicators": 0,
+        "fake_login_forms": 0
+      }
     }
   },
   "reputation_score": {
     "total_score": 1.2,
     "risk_level": "low",
-    "threats": []
+    "threats": [],
+    "pattern_score": 0
   }
 }
 ```
 
+#### Get Scan History
+
+**Endpoint**: `GET /api/history?limit=10`
+
+#### Get Statistics
+
+**Endpoint**: `GET /api/stats`
+
 #### Health Check
 
 **Endpoint**: `GET /api/health`
-
-**Response**:
-```json
-{
-  "status": "healthy",
-  "service": "PhishSentry"
-}
-```
 
 ## Detection Logic
 
@@ -155,7 +181,13 @@ PhishSentry uses a multi-layered approach to assess URL reputation:
    - Security headers presence
    - Certificate validation
 
-4. **VirusTotal Score (0-4 points)**:
+4. **Pattern Analysis (0-4 points)**:
+   - Advanced pattern recognition
+   - Phishing keyword detection
+   - Social engineering indicators
+   - URL structure analysis
+
+5. **VirusTotal Score (0-4 points)**:
    - External threat intelligence
    - Multi-engine malware detection
 
@@ -163,8 +195,17 @@ PhishSentry uses a multi-layered approach to assess URL reputation:
 
 - **Low (0-2)**: Generally safe
 - **Medium (3-4)**: Potentially suspicious
-- **High (5-6)**: Likely malicious
-- **Critical (7-10)**: Definitely malicious
+- **High (5-7)**: Likely malicious
+- **Critical (8-10)**: Definitely malicious
+
+### Pattern Detection
+
+PhishSentry includes advanced pattern detection for:
+
+- **URL Patterns**: Suspicious characters, URL shorteners, deceptive paths
+- **Content Patterns**: Phishing keywords, urgency tactics, fake forms
+- **Script Analysis**: Obfuscated JavaScript, malicious code patterns
+- **Social Engineering**: Pressure tactics, fake prizes, credential harvesting
 
 ## Environment Variables
 
@@ -177,6 +218,32 @@ PhishSentry uses a multi-layered approach to assess URL reputation:
 | `MAX_SCAN_REQUESTS` | Maximum concurrent scan requests | 100 |
 | `SCAN_TIMEOUT` | HTTP request timeout in seconds | 30 |
 
+## File Structure
+
+```
+PhishSentry/
+├── app.py                 # Main Flask application
+├── config.py             # Configuration settings
+├── requirements.txt      # Python dependencies
+├── test_scanner.py       # Test script
+├── modules/              # Core scanning modules
+│   ├── url_scanner.py    # URL scanning engine
+│   ├── reputation_engine.py # Reputation scoring
+│   ├── virustotal_client.py # VirusTotal API client
+│   ├── pattern_detector.py  # Pattern recognition
+│   ├── scan_history.py   # Scan history management
+│   └── threat_patterns.py # Threat pattern definitions
+├── routes/               # Flask route handlers
+│   ├── api.py           # API endpoints
+│   └── web.py           # Web interface routes
+└── templates/           # HTML templates
+    ├── base.html        # Base template
+    ├── index.html       # Dashboard
+    ├── scan.html        # Scan form
+    ├── results.html     # Scan results
+    └── history.html     # Scan history
+```
+
 ## API Rate Limits
 
 - **VirusTotal Free**: 4 requests/minute
@@ -185,9 +252,10 @@ PhishSentry uses a multi-layered approach to assess URL reputation:
 ## Security Considerations
 
 - All scanned URLs are processed server-side for security
-- No user data is permanently stored
+- No user data is permanently stored (except scan history locally)
 - SSL/TLS verification enforced for production
 - Input validation and sanitization implemented
+- Scan history stored locally in JSON format
 
 ## Contributing
 
@@ -213,6 +281,19 @@ If you encounter any issues or have questions:
 1. Check the [Issues](https://github.com/noahwilliamshaffer/URL-Scanner-Reputation-Engine/issues) page
 2. Create a new issue with detailed information
 3. Include logs and reproduction steps
+
+## Changelog
+
+### v1.0.0 - Initial Release
+- ✅ Complete Flask application structure
+- ✅ URL scanning and content analysis
+- ✅ Reputation scoring engine
+- ✅ VirusTotal API integration
+- ✅ Advanced pattern detection
+- ✅ Web interface with dashboard
+- ✅ Scan history and statistics
+- ✅ REST API endpoints
+- ✅ Comprehensive documentation
 
 ---
 
