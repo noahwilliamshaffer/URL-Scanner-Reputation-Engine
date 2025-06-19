@@ -1,11 +1,15 @@
 from flask import Blueprint, request, jsonify
 from modules.url_scanner import URLScanner
 from modules.reputation_engine import ReputationEngine
+from modules.scan_history import ScanHistory
 import logging
 
 logger = logging.getLogger(__name__)
 
 api_bp = Blueprint('api', __name__)
+
+# Initialize scan history
+scan_history = ScanHistory()
 
 @api_bp.route('/scan', methods=['POST'])
 def scan_url():
@@ -30,6 +34,9 @@ def scan_url():
         
         # Calculate reputation score
         reputation_score = reputation_engine.calculate_score(scan_result)
+        
+        # Add to scan history
+        scan_history.add_scan(url, scan_result, reputation_score)
         
         # Prepare response
         response = {
@@ -59,5 +66,24 @@ def virustotal_info():
         client = VirusTotalClient()
         info = client.get_api_info()
         return jsonify(info), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@api_bp.route('/history', methods=['GET'])
+def get_scan_history():
+    """Get recent scan history."""
+    try:
+        limit = request.args.get('limit', 10, type=int)
+        recent_scans = scan_history.get_recent_scans(limit)
+        return jsonify({'recent_scans': recent_scans}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@api_bp.route('/stats', methods=['GET'])
+def get_stats():
+    """Get scanning statistics."""
+    try:
+        stats = scan_history.get_stats()
+        return jsonify(stats), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500 

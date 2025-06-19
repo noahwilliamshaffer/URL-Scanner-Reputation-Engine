@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}PhishSentry - Scan History{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-history me-2"></i>Scan History</h4>
+            </div>
+            <div class="card-body">
+                {% if recent_scans %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>URL</th>
+                                <th>Risk Level</th>
+                                <th>Score</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for scan in recent_scans %}
+                            <tr>
+                                <td class="text-break">
+                                    <small>{{ scan.url[:60] }}{% if scan.url|length > 60 %}...{% endif %}</small>
+                                </td>
+                                <td>
+                                    {% set risk_level = scan.risk_level %}
+                                    {% if risk_level == 'low' %}
+                                        <span class="badge bg-success">🟢 Low</span>
+                                    {% elif risk_level == 'medium' %}
+                                        <span class="badge bg-warning">🟡 Medium</span>
+                                    {% elif risk_level == 'high' %}
+                                        <span class="badge bg-danger">🟠 High</span>
+                                    {% elif risk_level == 'critical' %}
+                                        <span class="badge bg-danger">🔴 Critical</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">⚪ Unknown</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ "%.1f"|format(scan.total_score) }}/10</td>
+                                <td>
+                                    <small>{{ moment(scan.timestamp).format('MMM DD, YYYY HH:mm') if moment else scan.timestamp }}</small>
+                                </td>
+                                <td>
+                                    {% if scan.accessible %}
+                                        <span class="badge bg-success">✅ Accessible</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">❌ Error</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No scans yet</h5>
+                    <p class="text-muted">Start by scanning your first URL!</p>
+                    <a href="/scan" class="btn btn-primary">
+                        <i class="fas fa-search me-2"></i>Scan URL
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
